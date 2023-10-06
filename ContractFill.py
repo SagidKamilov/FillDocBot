@@ -2,11 +2,11 @@ from docxtpl import DocxTemplate
 
 
 class Contract:
-    def __init__(self, info_contract, contract_type):
+    def __init__(self, info_contract, contract_type, template='Б'):
         if contract_type == "З":
-            self.doc = DocxTemplate("Templates/БаданинаЗаказчик.docx")
+            self.doc = DocxTemplate(f"Templates/{template}З.docx")
         elif contract_type == "П":
-            self.doc = DocxTemplate("Templates/БаданинаПеревозчик.docx")
+            self.doc = DocxTemplate(f"Templates/{template}П.docx")
 
         self.info = info_contract
         self.context = None
@@ -73,16 +73,13 @@ class Driver(Contract):
         self.doc.render(context=context)
 
     def save_docx(self):
-        date_document = self.info.get("date_document")
+        date_document = self.info.get("general").get("date")
         flight_info = self.info.get("flight_info")
 
         self.doc.save(f"Contracts/Заявка перевозчика {flight_info} {date_document}.docx")
 
 
-
-## TEST ##
 info = {
-    "date_document": "11.12.2023",
     "flight_info": "Елабуга-Яблоновский",
     "general": {
         "date": "02.10.2023",
@@ -90,10 +87,12 @@ info = {
         "from_date": "4",
         "contact_person_from": "5",
         "contact_person_from_phone": "6",
+
         "to_address": "7",
         "to_date": "8",
         "contact_person_to": "9",
         "contact_person_to_phone": "10",
+
         "type_machine": "11",
         "name_cargo": "12",
         "type_loading": "13",
