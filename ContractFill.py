@@ -74,13 +74,11 @@ class Driver(Contract):
 
     def save_docx(self):
         date_document = self.info.get("general").get("date")
-        flight_info = self.info.get("flight_info")
-
+        flight_info = self.info.get("general").get("from_address") + self.info.get("general").get("to_address")
         self.doc.save(f"Contracts/Заявка перевозчика {flight_info} {date_document}.docx")
 
 
 info = {
-    "flight_info": "Елабуга-Яблоновский",
     "general": {
         "date": "02.10.2023",
         "from_address": "3",

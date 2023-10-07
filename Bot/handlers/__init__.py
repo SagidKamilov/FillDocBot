@@ -1,1 +1,2 @@
 from Bot.handlers.Start import register_contract_start
+from Bot.handlers.NewContract import register_handler_new_contract
