@@ -1,6 +1,5 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-
 def choice_template():
     kb = InlineKeyboardMarkup()
     but1 = InlineKeyboardButton(text="Баданина", callback_data='Б')
