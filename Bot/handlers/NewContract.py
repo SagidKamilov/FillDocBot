@@ -40,6 +40,7 @@ class NewContract(StatesGroup):
     step28 = State()
     step29 = State()
     step30 = State()
+    step31 = State()
 
 
 def get_index_message(data, message):
@@ -374,8 +375,18 @@ async def step29(message: types.Message, state: FSMContext):
 
 
 async def step30(message: types.Message, state: FSMContext):
+    text = "Маршрут (Город1-Города2):"
     async with state.proxy() as data:
-        data['short_org_name_carrier'] = message.text
+        data['full_org_name_carrier'] = message.text
+        data["messages"].append(text)
+        data['n'] = get_index_message(data, text)
+    await NewContract.next()
+    await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
+
+
+async def step31(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data["flight"] = message.text
     await message.bot.send_message(message.from_user.id, "Сбор информации закончен, идет обработка!")
 
 
@@ -414,5 +425,6 @@ def register_handler_new_contract(dp: Dispatcher):
     dp.register_message_handler(step28, content_types=["text"], state=NewContract.step28)
     dp.register_message_handler(step29, content_types=["text"], state=NewContract.step29)
     dp.register_message_handler(step30, content_types=["text"], state=NewContract.step30)
+    dp.register_message_handler(step31, content_types=["text"], state=NewContract.step31)
 
 
