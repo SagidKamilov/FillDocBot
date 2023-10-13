@@ -1,3 +1,5 @@
+from typing import Tuple
+
 from docxtpl import DocxTemplate
 
 
@@ -88,18 +90,18 @@ class Driver(Contract):
             raise Exception(f"Ошибка создания документа: {error}")
 
 
-def fill_doc(info_doc: dict) -> tuple:
+def fill_doc(info_doc: dict) -> Tuple[str, str]:
     template = info_doc.get("template")
 
     customer = Customer(info_contract=info_doc, contract_type='З', template=template)
     customer.render_general()
     customer.render_customer()
-    customer_result = customer.save_docx()
+    customer_result: str = customer.save_docx()
 
     driver = Driver(info_contract=info_doc, contract_type='П', template=template)
     driver.render_general()
     driver.render_driver()
-    driver_result = driver.save_docx()
+    driver_result: str = driver.save_docx()
 
     return customer_result, driver_result
 
