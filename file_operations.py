@@ -5,7 +5,21 @@ from contract_fill import fill_doc
 
 path_to_doc = r"Contracts/docs"
 find_files_name_file = "file_name"
-find_files_path_to_file = "path_to_file"
+
+
+def extract(file_name: str) -> str:
+    """
+    Функция получает полезную информацию из имени документа.
+
+    :param: file_name: имя файла для преобразования
+    :return: short_file_name: полезная информация в виде строки
+    """
+    extract_meta_data: list = file_name.split("_")
+    flight: str = extract_meta_data[2]
+    flight_date: str = extract_meta_data[3]
+    template_doc: str = extract_meta_data[4]
+    short_file_name: str = f"{flight} {flight_date} {template_doc}"
+    return short_file_name
 
 
 def delete_file(file_name) -> str | FileNotFoundError:
@@ -35,7 +49,7 @@ def delete_files(path_to_dir: str) -> str:
         for file in files:
             file_path = str(file)
             delete_file(file_path)
-        return "Удаление прошло успешно!"
+        return "Все контракты были удалены"
     except FileNotFoundError as error:
         raise error
 
@@ -45,12 +59,12 @@ def find_files() -> List[Dict[str, str]] | str:
     Поиск и возврат списка имен файлов в указанной директории.
 
     :param: None
-    :return: Список пар ключ-значений - {"file_name": "<имя_файла>", "path_to_file": "<путь_к_файлу>"}
+    :return: Список пар ключ-значений - {"file_name": "<имя_файла>", "file": "<короткое имя файла>"}
     """
     try:
         files = os.scandir(path_to_doc)
         names_files = [
-            {find_files_name_file: file.name, find_files_path_to_file: file.path} for file in files
+            {find_files_name_file: extract(file_name=file.name)} for file in files
         ]
         return names_files
     except FileNotFoundError as error:
