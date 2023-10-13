@@ -1,12 +1,17 @@
+from typing import Dict
+
 from aiogram import Dispatcher
 from aiogram import types
 from aiogram.dispatcher.filters import Text
-
 from aiogram.dispatcher.storage import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from Bot.keyboard import choice_template, cancel_enter
 from utils import check_date
+from contract_fill import fill_doc
+from file_operations import find_files
+from file_operations import path_to_doc
+from Contracts.DB import DB
 
 
 class NewContract(StatesGroup):
@@ -51,18 +56,19 @@ def get_index_message(data, message):
 
 async def start_(message: types.Message, state: FSMContext):
     await NewContract.step1.set()
-    await message.bot.send_message(message.from_user.id, "Вы выбрали \"Новый контракт\". Выберите Шаблон:",
-                                   reply_markup=choice_template())
+    text = "Вы выбрали \"Новый контракт\" (Если не знаете, что выбрать, то поставьте точку). Выберите Шаблон:"
+    await message.bot.send_message(message.from_user.id, text=text, reply_markup=choice_template())
     async with state.proxy() as data:
         data['n'] = -1
         data["messages"] = []
 
 
 async def stop_(message: types.Message, state: FSMContext):
+    text = "Создание документа отменено."
     async with state.proxy() as data:
         data.clear()
     await state.finish()
-    await message.bot.send_message(message.from_user.id, "Создание документа отменено.")
+    await message.bot.send_message(message.from_user.id, text=text)
 
 
 async def back(callback: types.CallbackQuery, state: FSMContext):
@@ -81,11 +87,11 @@ async def back(callback: types.CallbackQuery, state: FSMContext):
 async def step1(callback: types.CallbackQuery, state: FSMContext):
     text = "Введите дату создания договора: дд.мм.гггг"
     async with state.proxy() as data:
-        data["who_is"] = callback.data
+        data["template"] = callback.data
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
-    await callback.bot.send_message(callback.from_user.id, text,
-                                    reply_markup=cancel_enter())
+
+    await callback.bot.send_message(callback.from_user.id, text, reply_markup=cancel_enter())
     await NewContract.next()
 
 
@@ -94,14 +100,14 @@ async def step2(message: types.Message, state: FSMContext):
         text = "Адрес погрузки:"
         async with state.proxy() as data:
             data["date"] = message.text
-            await NewContract.next()
-            await message.bot.send_message(message.from_user.id, text,
-                                       reply_markup=cancel_enter())
             data["messages"].append(text)
             data['n'] = get_index_message(data, text)
+
+        await NewContract.next()
+        await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
     else:
-        await message.bot.send_message(message.from_user.id, "Неправильный формат даты!", reply_markup=cancel_enter())
-        await NewContract.step1.set()
+        text = "Неправильный формат даты!"
+        await message.bot.send_message(message.from_user.id, text=text, reply_markup=cancel_enter())
 
 
 async def step3(message: types.Message, state: FSMContext):
@@ -110,6 +116,7 @@ async def step3(message: types.Message, state: FSMContext):
         data["from_address"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
     await NewContract.next()
 
@@ -120,6 +127,7 @@ async def step4(message: types.Message, state: FSMContext):
         data["from_date"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -130,6 +138,7 @@ async def step5(message: types.Message, state: FSMContext):
         data["contact_person_from"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -140,16 +149,18 @@ async def step6(message: types.Message, state: FSMContext):
         data["contact_person_from_phone"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
 
 async def step7(message: types.Message, state: FSMContext):
-    text = "Введите дату и адрес разгрузки"
+    text = "Введите дату и время разгрузки"
     async with state.proxy() as data:
         data["to_address"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -160,6 +171,7 @@ async def step8(message: types.Message, state: FSMContext):
         data["to_date"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -170,6 +182,7 @@ async def step9(message: types.Message, state: FSMContext):
         data["contact_person_to"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -180,6 +193,7 @@ async def step10(message: types.Message, state: FSMContext):
         data["contact_person_to_phone"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -190,6 +204,7 @@ async def step11(message: types.Message, state: FSMContext):
         data["type_machine"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -200,6 +215,7 @@ async def step12(message: types.Message, state: FSMContext):
         data["name_cargo"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -210,6 +226,7 @@ async def step13(message: types.Message, state: FSMContext):
         data["type_loading"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -220,6 +237,7 @@ async def step14(message: types.Message, state: FSMContext):
         data["type_unloading"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -230,6 +248,7 @@ async def step15(message: types.Message, state: FSMContext):
         data["price_customer"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -240,6 +259,7 @@ async def step16(message: types.Message, state: FSMContext):
         data["price_driver"] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -250,6 +270,7 @@ async def step17(message: types.Message, state: FSMContext):
         data['car_model'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -257,9 +278,10 @@ async def step17(message: types.Message, state: FSMContext):
 async def step18(message: types.Message, state: FSMContext):
     text = "Марка П./П.:"
     async with state.proxy() as data:
-        data['cur_number'] = message.text
+        data['car_number'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -270,6 +292,7 @@ async def step19(message: types.Message, state: FSMContext):
         data['trailer_model'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -277,9 +300,10 @@ async def step19(message: types.Message, state: FSMContext):
 async def step20(message: types.Message, state: FSMContext):
     text = "ФИО водителя:"
     async with state.proxy() as data:
-        data['trailer_model'] = message.text
+        data['trailer_number'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -290,6 +314,7 @@ async def step21(message: types.Message, state: FSMContext):
         data['name_driver'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -300,6 +325,7 @@ async def step22(message: types.Message, state: FSMContext):
         data['phone_driver'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -310,6 +336,7 @@ async def step23(message: types.Message, state: FSMContext):
         data['passport_driver'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -320,6 +347,7 @@ async def step24(message: types.Message, state: FSMContext):
         data['contact_manager'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -330,6 +358,7 @@ async def step25(message: types.Message, state: FSMContext):
         data['info_customer'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -340,6 +369,7 @@ async def step26(message: types.Message, state: FSMContext):
         data['short_org_name_customer'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -350,6 +380,7 @@ async def step27(message: types.Message, state: FSMContext):
         data['full_org_name_customer'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -360,6 +391,7 @@ async def step28(message: types.Message, state: FSMContext):
         data['carrier_info'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -370,6 +402,7 @@ async def step29(message: types.Message, state: FSMContext):
         data['short_org_name_carrier'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -380,6 +413,7 @@ async def step30(message: types.Message, state: FSMContext):
         data['full_org_name_carrier'] = message.text
         data["messages"].append(text)
         data['n'] = get_index_message(data, text)
+
     await NewContract.next()
     await message.bot.send_message(message.from_user.id, text, reply_markup=cancel_enter())
 
@@ -387,7 +421,15 @@ async def step30(message: types.Message, state: FSMContext):
 async def step31(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data["flight"] = message.text
-    await message.bot.send_message(message.from_user.id, "Сбор информации закончен, идет обработка!")
+
+    await message.bot.send_message(message.from_user.id, text="Данные приняты. Идет обработка...")
+    result = fill_doc(info_doc=data)
+    for path_to_file in result:
+        path_to_file: str = path_to_doc + path_to_file
+        with open(file=path_to_file, mode="rb") as file:
+            await message.bot.send_document(message.from_user.id, document=file)
+        file.close()
+    await state.finish()
 
 
 def register_handler_new_contract(dp: Dispatcher):
