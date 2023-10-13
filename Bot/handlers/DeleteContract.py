@@ -5,7 +5,10 @@ from aiogram.dispatcher.storage import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from Bot.keyboard import general_kb
-from file_operations import find_files, delete_file
+# Вызов функций, производящий операции над файлами
+from file_operations import find_files, delete_file, delete_files
+# Вызов констант
+from file_operations import path_to_doc
 
 
 class DeleteContract(StatesGroup):
@@ -31,14 +34,15 @@ async def delete_contract_step2(callback: types.CallbackQuery, state: FSMContext
 
 
 async def delete_all(message: types.Message):
-    pass
+    result = delete_files(path_to_dir=path_to_doc)
+    await message.bot.send_message(message.from_user.id, text=result)
 
 
 def register_handler_delete_contract(dp: Dispatcher):
     dp.register_message_handler(delete_contract_step1, commands=["delete_contract"], state=None)
     dp.register_message_handler(delete_contract_step1, Text(equals="Удалить файл"), state=None)
     dp.register_callback_query_handler(delete_contract_step2,
-                                       lambda message:  message.data.endswitch("_") or message.data == "cancel_del",
+                                       lambda message:  message.data == "Заявка" or message.data == "cancel_del",
                                        state=DeleteContract.step1)
     dp.register_message_handler(delete_all, commands=["delete_all"])
     dp.register_message_handler(delete_all, Text(equals="Удалить все файлы"))
