@@ -12,7 +12,7 @@ async def start_(message: types.Message):
 
 async def help_(message: types.Message):
     await message.bot.send_message(message.from_user.id, "Создать заявку (НК) - /create_contract"
-                                                         "\nИзменить старую заявку (ИК) - /update_contract"
+                                                         "\nВыбрать старую заявку (ИК) - /select_contract"
                                                          "\nУдалить старую заявку (УК) - /delete_contract"
                                                          "\nУдалить все старые заявки (УдалитьВсе)- /delete_all")
 
