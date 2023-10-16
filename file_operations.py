@@ -51,7 +51,7 @@ def delete_files(path_to_dir: str) -> str:
         for file in files:
             file_path = str(file.name)
             delete_file(file_path)
-        return "Все контракты были удалены"
+        return "Все контракты были удалены!"
     except FileNotFoundError as error:
         raise error
 
@@ -61,7 +61,7 @@ def find_files() -> List[Dict[str, str]] | str:
     Поиск и возврат списка имен файлов в указанной директории.
 
     :param: None
-    :return: Список пар ключ-значений - {"file_name": "<имя_файла>", "file": "<короткое имя файла>"}
+    :return: Список пар ключ-значений - {"file_path": "<путь_к_файлу>", "file_name": "<имя_файла>", "short_file_name": "<короткое_имя_файла>"}
     """
     try:
         files = os.scandir(path_to_doc)
