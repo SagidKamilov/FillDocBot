@@ -22,6 +22,12 @@ async def delete_contract_step1(message: types.Message):
     await DeleteContract.step1.set()
 
 
+async def cancel(callback: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    text = "Выбор отменен!"
+    await callback.bot.send_message(callback.from_user.id, text=text)
+
+
 async def delete_contract_step2(callback: types.CallbackQuery, state: FSMContext):
     if callback.data == "cancel_del":
         text = "Удаление файлов остановлено!"
@@ -48,11 +54,12 @@ async def delete_all(message: types.Message):
 
 def register_handler_delete_contract(dp: Dispatcher):
     dp.register_message_handler(delete_contract_step1, commands=["delete_contract"], state=None)
+    dp.register_callback_query_handler(cancel, Text(equals="cancel"), state='*')
     dp.register_message_handler(delete_contract_step1, Text(equals="Удалить файл"), state=None)
     dp.register_callback_query_handler(delete_contract_step2,
                                        lambda message: message.data in [elem.get(FindFiles_ShortNameFile)
                                                                         for elem in
-                                                                        find_files()] or message.data == "cancel_del",
+                                                                        find_files()],
                                        state=DeleteContract.step1)
     dp.register_message_handler(delete_all, commands=["delete_all"])
     dp.register_message_handler(delete_all, Text(equals="Удалить все файлы"))
