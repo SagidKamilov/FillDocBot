@@ -15,5 +15,5 @@ def general_kb(list_doc: List[Dict[str, str]]) -> InlineKeyboardMarkup:
         name_file = elem_list.get(FindFiles_ShortNameFile)
         data_file = elem_list.get(FindFiles_ShortNameFile)
         kb.row(InlineKeyboardButton(text=name_file, callback_data=data_file))
-    kb.row(InlineKeyboardButton(text="Отмена", callback_data="cancel_del"))
+    kb.row(InlineKeyboardButton(text="Отмена", callback_data="cancel"))
     return kb
