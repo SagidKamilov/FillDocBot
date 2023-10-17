@@ -423,12 +423,12 @@ async def step31(message: types.Message, state: FSMContext):
 
     await message.bot.send_message(message.from_user.id, text="Данные приняты. Идет обработка...")
     result = fill_doc(info_doc=data)
+    await state.finish()
     for path_to_file in result:
         path_to_file: str = path_to_doc + path_to_file
         with open(file=path_to_file, mode="rb") as file:
             await message.bot.send_document(message.from_user.id, document=file)
         file.close()
-    await state.finish()
 
 
 def register_handler_new_contract(dp: Dispatcher):
