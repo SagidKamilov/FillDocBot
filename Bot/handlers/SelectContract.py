@@ -29,16 +29,19 @@ async def cancel(callback: types.CallbackQuery, state: FSMContext):
 
 
 async def select_contract_step2(callback: types.CallbackQuery, state: FSMContext):
-    list_of_doc: list = find_files()
-    for elem in list_of_doc:
-        if elem.get(FindFiles_ShortNameFile) == callback.data:
-            path_to_file = path_to_doc + elem.get(FindFiles_NameFile)
-            with open(file=path_to_file, mode="rb") as file:
-                await callback.bot.send_document(callback.from_user.id, document=file)
-            file.close()
-        #     break
-        # else:
-        #     continue
+    list_of_doc: list | str = find_files()
+    if type(list_of_doc) == str:
+        await callback.bot.send_message(callback.from_user.id, text=list_of_doc)
+    else:
+        for elem in list_of_doc:
+            if elem.get(FindFiles_ShortNameFile) == callback.data:
+                path_to_file = path_to_doc + elem.get(FindFiles_NameFile)
+                with open(file=path_to_file, mode="rb") as file:
+                    await callback.bot.send_document(callback.from_user.id, document=file)
+                file.close()
+            #     break
+            # else:
+            #     continue
     await state.finish()
 
 
