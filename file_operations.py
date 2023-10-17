@@ -34,7 +34,7 @@ def find_files() -> List[Dict[str, str]] | str:
     try:
         files = os.scandir(path_to_doc)
         names_files = [
-            {FindFiles_PathFile: file.path, FindFiles_NameFile: file.name, FindFiles_ShortNameFile: extract(file.name)} for file in files
+            {FindFiles_PathFile: file.path, FindFiles_NameFile: file.name, FindFiles_ShortNameFile: extract(file.name)} for file in files if file.is_file()
         ]
         return names_files
     except FileNotFoundError as error:
@@ -53,10 +53,10 @@ def delete_file(file_name) -> str | FileNotFoundError:
         os.remove(path_to_file)
         return "Удаление файла прошло успешно!"
     except FileNotFoundError as error:
-        raise error
+        return error
 
 
-def delete_files(path_to_dir: str) -> str:
+def delete_files(path_to_dir: str) -> str | FileNotFoundError:
     """
     Удаляет все файлы в указанной директории.
 
@@ -69,8 +69,9 @@ def delete_files(path_to_dir: str) -> str:
         else:
             files = os.scandir(path_to_dir)
             for file in files:
-                file_path = str(file.name)
-                delete_file(file_path)
+                if file.is_file():
+                    file_path = str(file.name)
+                    delete_file(file_path)
             return "Все контракты были удалены!"
     except FileNotFoundError as error:
-        raise error
+        return error
