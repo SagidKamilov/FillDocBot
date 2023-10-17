@@ -43,10 +43,10 @@ async def delete_contract_step2(callback: types.CallbackQuery, state: FSMContext
         for elem in list_of_doc:
             if elem.get(FindFiles_ShortNameFile) == callback.data:
                 result = delete_file(file_name=elem.get(FindFiles_NameFile))
+                await callback.bot.send_message(callback.from_user.id, text=result)
                 break
             else:
                 continue
-        await callback.bot.send_message(callback.from_user.id, text=result)
         text = "Хотите еще удалить что-нибудь?"
         await callback.bot.send_message(callback.from_user.id, text=text, reply_markup=general_kb(list_of_doc))
 

@@ -2,7 +2,7 @@ import os
 from typing import List, Dict
 
 
-path_to_doc = r"Contracts/docs/"
+path_to_doc = r"Contracts/"
 FindFiles_NameFile = "file_name"
 FindFiles_PathFile = "file_path"
 FindFiles_ShortNameFile = "short_file_name"
@@ -74,7 +74,3 @@ def delete_files(path_to_dir: str) -> str:
             return "Все контракты были удалены!"
     except FileNotFoundError as error:
         raise error
-
-
-
-

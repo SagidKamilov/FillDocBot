@@ -11,7 +11,6 @@ from utils import check_date
 from contract_fill import fill_doc
 from file_operations import find_files
 from file_operations import path_to_doc
-from Contracts.DB import DB
 
 
 class NewContract(StatesGroup):
