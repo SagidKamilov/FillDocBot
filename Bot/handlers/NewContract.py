@@ -432,7 +432,7 @@ async def step31(message: types.Message, state: FSMContext):
 
 
 def register_handler_new_contract(dp: Dispatcher):
-    dp.register_message_handler(start_, commands=["new_contract"], state=None)
+    dp.register_message_handler(start_, commands=["create_contract"], state=None)
     dp.register_message_handler(start_, Text(equals="нк", ignore_case=True), state=None)
     dp.register_callback_query_handler(stop_, Text(equals="stop"), state='*')
     dp.register_callback_query_handler(back, Text(equals="back"), state='*')
