@@ -39,11 +39,8 @@ async def select_contract_step2(callback: types.CallbackQuery, state: FSMContext
             path_to_file = path_to_doc + elem.get(FindFiles_NameFile)
             with open(file=path_to_file, mode="rb") as file:
                 await callback.bot.send_document(callback.from_user.id, document=file)
-            file.close()
-        #     break
-        # else:
-        #     continue
-    await state.finish()
+    text = "Выберите еще файл или нажмите кнопка \"отмена\""
+    await callback.bot.send_message(callback.from_user.id, text=text)
 
 
 def register_handler_select_contract(dp: Dispatcher):
