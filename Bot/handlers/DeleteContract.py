@@ -16,10 +16,14 @@ class DeleteContract(StatesGroup):
 
 
 async def delete_contract_step1(message: types.Message):
-    list_of_doc: list = find_files()
-    text = "Выберите договор, который надо удалить:"
-    await message.bot.send_message(message.from_user.id, text=text, reply_markup=general_kb(list_of_doc))
-    await DeleteContract.step1.set()
+    list_of_doc: list | str = find_files()
+    if not list_of_doc:
+        text = "Файлы не обнаружены."
+        await message.bot.send_message(message.from_user.id, text=text)
+    else:
+        text = "Выберите договор, который надо удалить:"
+        await message.bot.send_message(message.from_user.id, text=text, reply_markup=general_kb(list_of_doc))
+        await DeleteContract.step1.set()
 
 
 async def cancel(callback: types.CallbackQuery, state: FSMContext):

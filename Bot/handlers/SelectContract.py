@@ -16,10 +16,14 @@ class SelectContract(StatesGroup):
 
 
 async def select_contract_step1(message: types.Message):
-    list_of_doc: list = find_files()
-    text = "Выберите договор, который хотите получить:"
-    await message.bot.send_message(message.from_user.id, text=text, reply_markup=general_kb(list_of_doc))
-    await SelectContract.step1.set()
+    list_of_doc: list | str = find_files()
+    if not list_of_doc:
+        text = "Файлы не обнаружены."
+        await message.bot.send_message(message.from_user.id, text=text)
+    else:
+        text = "Выберите договор, который хотите получить:"
+        await message.bot.send_message(message.from_user.id, text=text, reply_markup=general_kb(list_of_doc))
+        await SelectContract.step1.set()
 
 
 async def cancel(callback: types.CallbackQuery, state: FSMContext):
@@ -30,18 +34,15 @@ async def cancel(callback: types.CallbackQuery, state: FSMContext):
 
 async def select_contract_step2(callback: types.CallbackQuery, state: FSMContext):
     list_of_doc: list | str = find_files()
-    if type(list_of_doc) == str:
-        await callback.bot.send_message(callback.from_user.id, text=list_of_doc)
-    else:
-        for elem in list_of_doc:
-            if elem.get(FindFiles_ShortNameFile) == callback.data:
-                path_to_file = path_to_doc + elem.get(FindFiles_NameFile)
-                with open(file=path_to_file, mode="rb") as file:
-                    await callback.bot.send_document(callback.from_user.id, document=file)
-                file.close()
-            #     break
-            # else:
-            #     continue
+    for elem in list_of_doc:
+        if elem.get(FindFiles_ShortNameFile) == callback.data:
+            path_to_file = path_to_doc + elem.get(FindFiles_NameFile)
+            with open(file=path_to_file, mode="rb") as file:
+                await callback.bot.send_document(callback.from_user.id, document=file)
+            file.close()
+        #     break
+        # else:
+        #     continue
     await state.finish()
 
 
