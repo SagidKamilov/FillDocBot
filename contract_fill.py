@@ -2,12 +2,14 @@ from typing import Tuple
 
 from docxtpl import DocxTemplate
 
+from file_operations import path_to_doc
+
 
 class Contract:
     def __init__(self, info_contract: dict, contract_type: str, template: str = 'М'):
         template_path = f"Templates/{template.upper()}{contract_type}.docx"
         # template_path = "Templates/МЗ.docx"
-        self.path_to_save_doc = "Contracts/docs/"
+        self.path_to_save_doc = path_to_doc
         self.template = template
         self.doc = DocxTemplate(template_path)
         self.info = info_contract
