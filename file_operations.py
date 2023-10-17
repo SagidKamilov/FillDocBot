@@ -24,6 +24,23 @@ def extract(file_name: str) -> str:
     return short_file_name
 
 
+def find_files() -> List[Dict[str, str]] | str:
+    """
+    Поиск и возврат списка имен файлов в указанной директории.
+
+    :param: None
+    :return: Список пар ключ-значений - {"file_path": "<путь_к_файлу>", "file_name": "<имя_файла>", "short_file_name": "<короткое_имя_файла>"}
+    """
+    try:
+        files = os.scandir(path_to_doc)
+        names_files = [
+            {FindFiles_PathFile: file.path, FindFiles_NameFile: file.name, FindFiles_ShortNameFile: extract(file.name)} for file in files
+        ]
+        return names_files
+    except FileNotFoundError as error:
+        return "Файл на обнаружен"
+
+
 def delete_file(file_name) -> str | FileNotFoundError:
     """
     Удаляет указанный файл.
@@ -47,28 +64,17 @@ def delete_files(path_to_dir: str) -> str:
     :return: Строка об успешном удалении
     """
     try:
-        files = os.scandir(path_to_dir)
-        for file in files:
-            file_path = str(file.name)
-            delete_file(file_path)
-        return "Все контракты были удалены!"
+        if not (find_files()):
+            return "Папка пуста!"
+        else:
+            files = os.scandir(path_to_dir)
+            for file in files:
+                file_path = str(file.name)
+                delete_file(file_path)
+            return "Все контракты были удалены!"
     except FileNotFoundError as error:
         raise error
 
 
-def find_files() -> List[Dict[str, str]] | str:
-    """
-    Поиск и возврат списка имен файлов в указанной директории.
 
-    :param: None
-    :return: Список пар ключ-значений - {"file_path": "<путь_к_файлу>", "file_name": "<имя_файла>", "short_file_name": "<короткое_имя_файла>"}
-    """
-    try:
-        files = os.scandir(path_to_doc)
-        names_files = [
-            {FindFiles_PathFile: file.path, FindFiles_NameFile: file.name, FindFiles_ShortNameFile: extract(file.name)} for file in files
-        ]
-        return names_files
-    except FileNotFoundError as error:
-        return "Файл на обнаружен"
 
