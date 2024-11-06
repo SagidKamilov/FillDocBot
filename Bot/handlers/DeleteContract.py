@@ -17,7 +17,10 @@ class DeleteContract(StatesGroup):
 
 async def delete_contract_step1(message: types.Message):
     list_of_doc: list | str = find_files()
-    if not list_of_doc:
+    if isinstance(list_of_doc, str):
+        text = "Файлы не обнаружены."
+        await message.bot.send_message(message.from_user.id, text=text)
+    elif isinstance(list_of_doc, list) and not list_of_doc:
         text = "Файлы не обнаружены."
         await message.bot.send_message(message.from_user.id, text=text)
     else:

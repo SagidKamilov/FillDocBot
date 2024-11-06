@@ -1,4 +1,4 @@
-docxtpl==0.16.7
+docxtpl==0.18.0
 aiogram==2.25.1
 regex
 db-sqlite3==0.0.1
